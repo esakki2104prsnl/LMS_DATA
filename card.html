@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Load LMS Data from Excel</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        text-align: center;
+        margin: 20px;
+      }
+      .btn {
+        padding: 10px 15px;
+        font-size: 16px;
+        font-weight: bold;
+        color: white;
+        background-color: #007bff;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+      }
+      .btn:hover {
+        background-color: #0056b3;
+      }
+      .container {
+        margin-top: 20px;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 20px;
+      }
+      .card {
+        background: white;
+        width: 300px;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        transition: transform 0.3s;
+      }
+      .card:hover {
+        transform: scale(1.03);
+        cursor: pointer;
+      }
+    </style>
+  </head>
+  <body>
+    <h2>Auto Load LMS Excel Data</h2>
+    <div class="container" id="courseContainer"></div>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        loadExcelData("LMS_Data.xlsx"); // Auto load Excel file on page load
+        // loadExcelData(
+        // "https://thisisoq-my.sharepoint.com/personal/7010842_oq_com/Documents/MENT/LMS_Data.xlsx"
+        // ); // Auto load Excel file on page load
+      });
+
+      async function loadExcelData(filePath) {
+        try {
+          const response = await fetch(filePath);
+          if (!response.ok) throw new Error("Failed to fetch Excel file");
+
+          const arrayBuffer = await response.arrayBuffer();
+          const workbook = XLSX.read(arrayBuffer, { type: "array" });
+
+          const sheetName = workbook.SheetNames[0]; // Get first sheet
+          const sheet = workbook.Sheets[sheetName];
+
+          const jsonData = XLSX.utils.sheet_to_json(sheet); // Convert Excel to JSON
+
+          displayCourses(jsonData);
+        } catch (error) {
+          console.error("Error loading Excel file:", error);
+        }
+      }
+
+      function displayCourses(courses) {
+        const container = document.getElementById("courseContainer");
+        container.innerHTML = ""; // Clear previous content
+
+        courses.forEach((course) => {
+          const card = document.createElement("div");
+          card.classList.add("card");
+          card.innerHTML = `
+                    <h3>${course.Title}</h3>
+                    <p><strong>Instructor:</strong> ${course.Instructor}</p>
+                    <p><strong>Total Hours:</strong> ${course.TotalHours}</p>
+                    <p><strong>Revision Date:</strong> ${course.RevisionDate}</p>
+                    <p><strong>Status:</strong> ${course.Status}</p>
+                `;
+          container.appendChild(card);
+        });
+      }
+    </script>
+  </body>
+</html>
